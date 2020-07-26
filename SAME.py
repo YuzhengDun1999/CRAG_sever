@@ -84,21 +84,16 @@ def sample_gamma(G, rare, b, annotation, beta, gamma, sigma_r, number):
 def sample_z(annotation, b, gamma, number):
     R = len(gamma)
     z = sp.zeros(shape = (R))
-    #if len(b.shape) == 1:
-    #    sum_b = b
-    #else:
     sum_b = b.sum(axis = 0)
+    Mean = 1/number * annotation.dot(sum_b.T)
+    std = math.sqrt(1/number)
     for i in range(R):
-        mean = 1/number * annotation[i].dot(sum_b.T)
-        Var = 1/number
+        mean = Mean[i]
         if gamma[i] == 1:
-            lower, upper = 0,  10**10
+            lower, upper = 0, 10**10
         else:
             lower, upper =  -10**10, 0
-        #z_i = truncnorm((lower-mean)/math.sqrt(Var), (upper-mean)/math.sqrt(Var), loc = mean, scale = math.sqrt(Var))
-        #z[i] = z_i.rvs(1)
-        #z[i] = truncted_temp((lower-mean)/math.sqrt(Var), (upper-mean)/math.sqrt(Var), mean, math.sqrt(Var))
-        z[i] = sp.stats.truncnorm.rvs((lower-mean)/math.sqrt(Var), (upper-mean)/math.sqrt(Var), loc = mean, scale = math.sqrt(Var),size=1)
+        z[i] = sp.stats.truncnorm.rvs((lower-mean)/std, (upper-mean)/std, loc = mean, scale = std,size=1)
     return z
 
 
@@ -187,7 +182,8 @@ def SAME(G, rare, common, annotation, gamma, b, alpha_e, tau_e, alpha_r, tau_r,
         sigma_e = sample_e(G, geno, beta, alpha_e, tau_e, number)
         sigma_r = sample_r(gamma, beta, alpha_r, tau_r, number)
         sigma_c = sample_c(beta, R, alpha_c, tau_c, number)
-        sigma_b = sample_sigma_b(b, alpha_b, tau_b, number)
+        #sigma_b = sample_sigma_b(b, alpha_b, tau_b, number)
+        sigma_b = 1
         
         Sigma_e.append(sigma_e)
         Sigma_r.append(sigma_r)
@@ -237,22 +233,21 @@ def Initial_SAME(cutoff, hierarchy, G, rare_geno, common_geno, annotation):
     result_beta, result_b, result_gamma, result_ite, result_residual, result_Sigma_e, result_Sigma_r, result_Sigma_c, result_Sigma_b, result_Gamma, result_z = SAME(G, rare_geno, common_geno, annotation, gamma, b, alpha_e, tau_e, alpha_r, tau_r, alpha_c, tau_c, alpha_b, tau_b, Ite, rate)
     
     geno = sp.hstack((rare_geno, common_geno))
-    #log_likelihood = sum( log( ( dnorm((G-geno %*% colMeans(results$beta)) / sqrt(results$sigma_e)) ) ) )
-    log_likelihood = sum(sp.log((norm.pdf((G-geno.dot(result_beta.mean(axis=0))) / math.sqrt(result_Sigma_e[-1])))))
-    log_likelihood1 = sum(sp.log((norm.pdf((G-geno.dot(result_beta.mean(axis=0))) / math.sqrt(result_Sigma_e[-1])))))
+    ### G|beta,sigma_e
+    log_likelihood1 = sum(sp.log((norm.pdf((G-geno.dot(result_beta.mean(axis=0))) / math.sqrt(result_Sigma_e[-1]))))) - sp.log(result_Sigma_e[-1])/2*G.shape[0]
     zero = 10**(-10)
-    #log_likelihood = log_likelihood + sum(log(dnorm(colMeans(results$beta)[1:ncol(rare_geno)]/sqrt(results$gamma*results$sigma_r+zero))))
-    log_likelihood = log_likelihood + sum(-(result_beta.mean(axis=0)[0:rare_geno.shape[1]]/sp.sqrt(result_Gamma[-1]*result_Sigma_r[-1]+zero))**2/2)
+    ### beta_rare | sigma_r
     log_likelihood2 = sum(-(result_beta.mean(axis=0)[0:rare_geno.shape[1]]/sp.sqrt(result_Gamma[-1]*result_Sigma_r[-1]+zero))**2/2)
-    #log_likelihood = log_likelihood + sum(log(dnorm(colMeans(results$beta)[(1+ncol(rare_geno)):ncol(results$beta)]/sqrt(results$sigma_c))))
-    log_likelihood = log_likelihood + sum(sp.log(norm.pdf(result_beta.mean(axis=0)[rare_geno.shape[1]:result_beta.shape[1]]/math.sqrt(result_Sigma_c[-1]))))
+    ### beta_common | sigma_c
     log_likelihood3 = sum(sp.log(norm.pdf(result_beta.mean(axis=0)[rare_geno.shape[1]:result_beta.shape[1]]/math.sqrt(result_Sigma_c[-1]))))
     Probit = norm.cdf(annotation.dot(result_b.mean(axis=0)))
-    log_likelihood = log_likelihood + sum(result_Gamma[-1]*sp.log(Probit)+(1-result_Gamma[-1])*sp.log(1-Probit))
+    ### gamma bernoulli distribution
     log_likelihood4 = sum(result_Gamma[-1]*sp.log(Probit)+(1-result_Gamma[-1])*sp.log(1-Probit))
+    ### likelihood of logistic regression
     log_likelihood5 = sum(sp.log(norm.pdf(result_z-annotation.dot(result_b.mean(axis=0)))))
-    #log_likelihood6 = sum(sp.log(norm.pdf(result_b.mean(axis=0)/sp.sqrt(result_Sigma_b[-1]))))
+    ### b | sigma_b
     log_likelihood6 = sum(-(result_b.mean(axis=0)/sp.sqrt(result_Sigma_b[-1]))**2/2)-sp.log(result_Sigma_b[-1])/2*annotation.shape[1]
-    log_likelihood = log_likelihood + log_likelihood5 + log_likelihood6
+    
+    log_likelihood = log_likelihood1+log_likelihood2+log_likelihood3+log_likelihood4+log_likelihood5 + log_likelihood6
     
     return sp.mean(result_beta,axis=0), result_gamma, sp.mean(result_b,axis=0), log_likelihood, log_likelihood1, log_likelihood2, log_likelihood3, log_likelihood4, log_likelihood5, log_likelihood6,result_Sigma_b,result_Sigma_c,result_Sigma_e,result_Sigma_r

@@ -56,4 +56,4 @@ def generation_CommonRare(common, rare, annotation, h2_anno, h2_r, h2_c, pi):
     beta = sp.append(beta_rare, beta_common)
     G = geno.dot(beta) + noise
     
-    return G, common, rare, gamma, beta, sigma_r, sigma_c, sigma_e, sigma_b, b
+    return G, common, rare, gamma, beta, sigma_r, sigma_c, sigma_e, sigma_b, b, w
