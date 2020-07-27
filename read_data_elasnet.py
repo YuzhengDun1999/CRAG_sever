@@ -1,28 +1,26 @@
 import pandas as pd
 import scipy as sp
 from pandas_plink import read_plink
-from generation import generation_CommonRare
 from SAME import SAME
 import argparse
 import datetime
-import glmnet_python
-from cvglmnet import cvglmnet
-from cvglmnetCoef import cvglmnetCoef
-
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--plink',dest='plink',help='plink file location')
+parser.add_argument('--expression',dest='expression',help='gene expression file location')
+parser.add_argument('--gamma',dest='gamma',help='gamma initialization file location')
 parser.add_argument('--frq',dest='frq',help='frequency file location')
 parser.add_argument('--annotation',dest='annotation',help='annotation file location')
 parser.add_argument('--outSNP',dest='outputSNP',help='output of SNP file location')
 parser.add_argument('--outAnno',dest='outputAnno',help='output of annotation file location')
 parser.add_argument('--outPerfer',dest='outputPerfer',help='output of perfermance file location')
 
-
 args = parser.parse_args()
 input_plink = args.plink
 input_frq = args.frq
 input_annotation = args.annotation
+input_expression = args.expression
+input_gamma = args.gamma
 output_SNP = args.outputSNP
 output_annotation = args.outputAnno
 output_perfer = args.outputPerfer
@@ -53,16 +51,15 @@ annotation_tmp = annotation_tmp[rare_index]
 annotation = sp.ones(shape = (annotation_tmp.shape[0],annotation_tmp.shape[1]+1))
 annotation[:,:-1] = annotation_tmp
 
-##generation
-G, common_geno, rare_geno, generate_gamma, beta, sigma_r, sigma_c, sigma_e, sigma_b, b, generate_z = generation_CommonRare(common = common_geno,rare = rare_geno,annotation = annotation, h2_anno = 0.5,h2_r = 0.2,h2_c = 0.1,pi = 0.04)
-
-### initialization by using glmnet
-cvfit = cvglmnet(x = rare_geno, y = G, ptype = 'deviance', alpha = 0.5, intr = 0)
-cv_coef = cvglmnetCoef(cvfit, s = 'lambda_min')#n*1
-gamma = sp.ones(rare_geno.shape[1])
-gamma[cv_coef.T[0] == 0]= 0
-
-
+##prepare the data
+common_geno = common_geno.fillna(common_geno.mean()).values
+common_geno = (common_geno-common_geno.mean())/common_geno.std()
+rare_geno = rare_geno.fillna(rare_geno.mean()).values
+rare_geno = (rare_geno-rare_geno.mean())/rare_geno.std()
+G = pd.read_table(input_expression)
+G = G.values.T[0]
+gamma = pd.read_table(input_gamma)
+gamma = gamma.values.T[0]
 b = sp.zeros(shape = (1, annotation.shape[1]))
 b[0,-1] = -5
 alpha_e = 0.01
@@ -99,20 +96,20 @@ Ano_coef.to_csv(output_annotation, sep = '\t', index = False)
 geno = sp.hstack((rare_geno, common_geno))
 G_pre = geno.dot(result_beta.mean(axis=0)*result_Gamma[-1])
 h2_pre = sp.var(G_pre)/sp.var(G)
-true_h2 = sp.var(geno.dot(beta))/sp.var(G)
+#true_h2 = sp.var(geno.dot(beta))/sp.var(G)
 cor_pre = sp.stats.pearsonr(G, G_pre)[0]
-true_cor = sp.stats.pearsonr(G, geno.dot(beta))[0]
+#true_cor = sp.stats.pearsonr(G, geno.dot(beta))[0]
 SSR = sum((G-G_pre)**2)
 SST = sum((G-sp.mean(G))**2)
-SSR1 = sum((G-geno.dot(beta))**2)
+#SSR1 = sum((G-geno.dot(beta))**2)
 R2_pre = 1-SSR/SST
-true_R = 1-SSR1/SST
+#true_R = 1-SSR1/SST
 gamma_sum = sum(result_Gamma[-1])
-gamma_true = sum(generate_gamma)
+#gamma_true = sum(generate_gamma)
 Per_names = ["gamma","h2","corr","R2"]
 Perfermance = pd.DataFrame(columns = Per_names)
 Perfermance.loc[0] = sp.array([gamma_sum,h2_pre,cor_pre,R2_pre])
-Perfermance.loc[1] = sp.array([gamma_true,true_h2,true_cor,true_R])
+#Perfermance.loc[1] = sp.array([gamma_true,true_h2,true_cor,true_R])
 Perfermance.to_csv(output_perfer, sep = '\t', index = False)
 
 
