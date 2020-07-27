@@ -79,9 +79,9 @@ endtime1 = datetime.datetime.now()
 print (endtime1 - starttime1)
 
 geno = sp.hstack((rare_geno, common_geno))
-out_beta = result_beta
-out_b = result_b
-out_gamma = sp.append(result_gamma, sp.ones(shape = common_geno.shape[1]))
+out_beta = result_beta.mean(axis=0)
+out_b = result_b.mean(axis=0)
+out_gamma = sp.append(result_Gamma[-1], sp.ones(shape = common_geno.shape[1]))
 SNP['beta'] = out_beta
 SNP['gamma'] = out_gamma
 SNP.to_csv(output_SNP, sep = '\t', index = False)
@@ -94,7 +94,7 @@ Ano_coef.loc[0] = out_b
 Ano_coef.to_csv(output_annotation, sep = '\t', index = False)
 
 geno = sp.hstack((rare_geno, common_geno))
-G_pre = geno.dot(result_beta.mean(axis=0)*result_Gamma[-1])
+G_pre = geno.dot(out_beta*out_gamma)
 h2_pre = sp.var(G_pre)/sp.var(G)
 #true_h2 = sp.var(geno.dot(beta))/sp.var(G)
 cor_pre = sp.stats.pearsonr(G, G_pre)[0]

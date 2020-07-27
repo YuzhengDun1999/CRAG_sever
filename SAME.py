@@ -201,7 +201,7 @@ def SAME(G, rare, common, annotation, gamma, b, alpha_e, tau_e, alpha_r, tau_r,
             if max(residual)<0.009:
                 break
 
-    return beta, b, gamma, ite, residual, Sigma_e, Sigma_r, Sigma_c, Sigma_b, Gamma, z
+    return beta, b, gamma, ite, residual, Sigma_e, Sigma_r, Sigma_c, Sigma_b, Gamma
 
 
 def Initial_SAME(cutoff, hierarchy, G, rare_geno, common_geno, annotation):
