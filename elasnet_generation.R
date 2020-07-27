@@ -6,7 +6,7 @@ frq_inp = Args[7]##frq.txt input
 anno_inp = Args[8]##annotation file input
 gamma_out = Args[9]##initialized gamma file output
 expression_out = Args[10]##gene expression file output
-perfer_out = Arg[10]##perfermance file output
+perfer_out = Args[11]##perfermance file output
 
 bim = read_bim(paste(plink,".bim",sep=""))
 fam = read_fam(paste("test",".fam",sep=""))
@@ -116,4 +116,4 @@ R_square = 1-SSR/SST
 
 write.table(temp,file=gamma_out,sep=" ",row.names = FALSE)
 write.table(G,file=expression_out,sep=" ",row.names = FALSE)
-write.table(list(gamma=sum(generate$gamma),h2=h2_generate,corr=cor_generate,R2=R_square),file=expression_out,sep=" ")
+write.table(list(gamma=sum(generate$gamma),h2=h2_generate,corr=cor_generate,R2=R_square),file=perfer_out,sep=" ")
