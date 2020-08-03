@@ -21,9 +21,9 @@ for (h in 1:length(h2)) {
           output_dir = paste0("/ysm-gpfs/pi/zhao/yd327/CRAG/simul/",chrs[i],"/",gene[i],"/","h_",h2[h],"_rareh_",rareh[r],"_pi_",pi[p],"_hanno_",annoh[a])
           
           ## location of input file
-          loc = paste0("/ysm-gpfs/scratch60/yd327/CRAG/simul/",chrs[i],"/",gene[i],"/","h_",h2[h],"_rareh_",rareh[r],"_pi_",pi[p],"_hanno_",annoh[a])
+          loc = paste0("/gpfs/ysm/scratch60/zhao/yd327/CRAG/simul/",chrs[i],"/",gene[i],"/","h_",h2[h],"_rareh_",rareh[r],"_pi_",pi[p],"_hanno_",annoh[a])
           cat(sent_dir,"\n")
-          sent_result <- paste0("python /ysm-gpfs/pi/zhao-data/yd327/CRAG_server/read_data_elasnet.py --plink ",genes[i,2]," --expression ",paste0(loc,"/","expression.txt")," --gamma ",paste0(loc,"/","gamma.txt")," --frq ",paste0(genes[i,2],".frq")," --annotation ",genes[i,1]," --outSNP ",paste0(output_dir,"/","SNP.txt")," --outAnno ",paste0(output_dir,"/","anno.txt")," --outPerfer ",paste0(output_dir,"/","pre_evaluation.txt"))
+          sent_result <- paste0("python /gpfs/ysm/scratch60/zhao/yd327/CRAG_server/read_data_elasnet.py --plink ",genes[i,2]," --expression ",paste0(loc,"/","expression.txt")," --gamma ",paste0(loc,"/","gamma.txt")," --frq ",paste0(genes[i,2],".frq")," --annotation ",genes[i,1]," --outSNP ",paste0(output_dir,"/","SNP.txt")," --outAnno ",paste0(output_dir,"/","anno.txt")," --outPerfer ",paste0(output_dir,"/","pre_evaluation.txt"))
           cat(sent_result,"\n")
         }
       }
