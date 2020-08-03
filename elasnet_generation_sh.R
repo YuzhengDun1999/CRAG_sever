@@ -18,7 +18,7 @@ for (h in 1:length(h2)) {
           sent_dir <- paste0("mkdir -p /gpfs/ysm/scratch60/zhao/yd327/CRAG/simul/",chrs[i],"/",gene[i],"/","h_",h2[h],"_rareh_",rareh[r],"_pi_",pi[p],"_hanno_",annoh[a])
           loc = paste0("/gpfs/ysm/scratch60/zhao/yd327/CRAG/simul/",chrs[i],"/",gene[i],"/","h_",h2[h],"_rareh_",rareh[r],"_pi_",pi[p],"_hanno_",annoh[a])
           cat(sent_dir,"\n")
-          sent_generate <- paste0("Rscript /gpfs/ysm/scratch60/zhao/yd327/CRAG_server/elasnet_generation.R ",genes[i,2]," ",paste0(genes[i,2],".frq")," ",genes[i,1]," ",paste0(loc,"/","gamma.txt")," ",paste0(loc,"/","expression.txt")," ",paste0(loc,"/","true_evaluation.txt")," ",h2[h]," ",rareh[r]," ",pi[p]," ",annoh[a])
+          sent_generate <- paste0("Rscript /gpfs/ysm/scratch60/zhao/yd327/CRAG_sever/elasnet_generation.R ",genes[i,2]," ",paste0(genes[i,2],".frq")," ",genes[i,1]," ",paste0(loc,"/","gamma.txt")," ",paste0(loc,"/","expression.txt")," ",paste0(loc,"/","true_evaluation.txt")," ",h2[h]," ",rareh[r]," ",pi[p]," ",annoh[a])
           cat(sent_generate,"\n")
         }
       }

@@ -7,10 +7,10 @@ anno_inp = Args[8]##annotation file input
 gamma_out = Args[9]##initialized gamma file output
 expression_out = Args[10]##gene expression file output
 perfer_out = Args[11]##perfermance file output
-h2_inp = Args[12]#heritability
-rareh_inp = Args[13]#percentage of rare variants heritability
-pi_inp = Args[14]#percentage of gamma=1
-annoh_inp = Args[15]#heritabilty of annotation
+h2_inp = as.numeric(Args[12])#heritability
+rareh_inp = as.numeric(Args[13])#percentage of rare variants heritability
+pi_inp = as.numeric(Args[14])#percentage of gamma=1
+annoh_inp = as.numeric(Args[15])#heritabilty of annotation
 
 bim = read_bim(paste(plink,".bim",sep=""))
 fam = read_fam(paste(plink,".fam",sep=""))
@@ -28,7 +28,7 @@ for(i in 1:length(frq$MAF)){
     common_index = c(common_index, i)
   }
 }
-
+#print(length(rare_index))
 
 rare_geno = t(bed[rare_index,])#rare variants genotype matrix,row=samples,col=rare variant
 common_geno = t(bed[common_index,])#common variants genotype matrix,row=samples,col=common variant
@@ -107,8 +107,9 @@ geno = cbind(rare_geno,common_geno)
 cv.fit1 = cv.glmnet(x=rare_geno,y = G,intercept=0,alpha=0.5,type.measure="deviance")
               #,penalty.factor=c(rep(1,ncol(rare_geno1)),rep(0,ncol(common_geno1))))
 coefficients1<-coef(cv.fit1,s=cv.fit1$lambda.min)
-temp=rep(1,4610)
-rare_coef=coefficients1[1:4610]
+R = ncol(rare_geno)
+temp=rep(1,R)
+rare_coef=coefficients1[1:R]
 temp[rare_coef==0]=0
 rownames(G)=NULL
 G_generate = geno%*%generate$beta
