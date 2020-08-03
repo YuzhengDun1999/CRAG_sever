@@ -12,9 +12,9 @@ Dependency
 
 Running the tests
 -----------------
-* For testing, run elasnet_generation.R. For example, Rscript elasnet_generation.R test test.frq annotation_Whole_Blood.txt gamma.txt expression.txt true_evaluation.txt
+* For testing, run elasnet_generation.R. For example, Rscript elasnet_generation.R test test.frq annotation_Whole_Blood.txt gamma.txt expression.txt true_evaluation.txt 0.05 0.1 0.05 0.1 
 
-  The first argument is plink file location, second is frequency file location, third is annotation file location, fourth is initialized gamma output file location, fifth is gene expression output file location, last one is expected evaluation results.
+  The first argument is plink file location, second is frequency file location, third is annotation file location, fourth is initialized gamma output file location, fifth is gene expression output file location, sixth argument is expected evaluation results, seventh argument is total heritability, eighth argument is percentage of rare variants heritability, nineth argument is percentage of gamma=1, last argument is heritability of annotation.
 
 * Then run read_data_elasnet.py. For example, python read_data_elasnet.py --plink test --expression expression.txt --gamma gamma.txt --frq test.frq --annotation annotation_Whole_Blood.txt --outSNP SNP.txt --outAnno anno.txt --outPerfer pre_evaluation.txt
 

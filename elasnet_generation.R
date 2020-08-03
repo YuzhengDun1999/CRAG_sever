@@ -7,10 +7,14 @@ anno_inp = Args[8]##annotation file input
 gamma_out = Args[9]##initialized gamma file output
 expression_out = Args[10]##gene expression file output
 perfer_out = Args[11]##perfermance file output
+h2_inp = Args[12]#heritability
+rareh_inp = Args[13]#percentage of rare variants heritability
+pi_inp = Args[14]#percentage of gamma=1
+annoh_inp = Args[15]#heritabilty of annotation
 
 bim = read_bim(paste(plink,".bim",sep=""))
-fam = read_fam(paste("test",".fam",sep=""))
-bed = read_bed(paste("test",".bed",sep=""), bim$id, fam$id)
+fam = read_fam(paste(plink,".fam",sep=""))
+bed = read_bed(paste(plink,".bed",sep=""), bim$id, fam$id)
 frq = read.table(frq_inp,header = TRUE)
 ano = read.table(anno_inp,header = TRUE)
 ano = ano[,-c(1:3)]
@@ -94,7 +98,7 @@ generation_CommonRare <- function(common,rare, annotation,h2_anno,h2_r,h2_c,pi){
 
 # new generation function
 generate <- generation_CommonRare(common = common_geno,rare = rare_geno,annotation = annotation, 
-                                  h2_anno = 0.5,h2_r = 0.2,h2_c = 0.1,pi = 0.05)
+                                  h2_anno = annoh_inp,h2_r = rareh_inp*h2_inp,h2_c = (1-rareh_inp)*h2_inp,pi = pi_inp)
 
 G = generate$G
 rare_geno = generate$rare
