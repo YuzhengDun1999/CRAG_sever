@@ -87,11 +87,6 @@ def sample_z(annotation, b, gamma, number):
     sum_b = b.sum(axis = 0)
     Mean = 1/number * annotation.dot(sum_b.T)
     
-    print(R)
-    print(b.shape)
-    print(sum_b.shape)
-    print(annotation.shape)
-    print(Mean.shape)
     std = math.sqrt(1/number)
     for i in range(R):
         mean = Mean[i]

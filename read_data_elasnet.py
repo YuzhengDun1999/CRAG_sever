@@ -47,11 +47,7 @@ common_geno = pdTmp.iloc[common_index,:].T
 
 annotation_tmp = ano.values
 annotation_tmp = sp.delete(annotation_tmp, [0,1,2], axis = 1)
-print(frq.shape)
-print(annotation_tmp.shape)
-print(len(rare_index))
 annotation_tmp = annotation_tmp[rare_index]
-print(annotation_tmp.shape)
 annotation = sp.ones(shape = (annotation_tmp.shape[0],annotation_tmp.shape[1]+1))
 annotation[:,:-1] = annotation_tmp
 
