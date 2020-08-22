@@ -22,6 +22,7 @@ parser.add_argument('--annotation',dest='annotation',help='annotation file locat
 parser.add_argument('--outSNP',dest='outputSNP',help='output of SNP file location')
 parser.add_argument('--outAnno',dest='outputAnno',help='output of annotation file location')
 parser.add_argument('--outPerfer',dest='outputPerfer',help='output of perfermance file location')
+parser.add_argument('--outResult',dest='outputResult',help='output of Result file location')
 
 args = parser.parse_args()
 input_plink = args.plink
@@ -32,6 +33,7 @@ input_gamma = args.gamma
 output_SNP = args.outputSNP
 output_annotation = args.outputAnno
 output_perfer = args.outputPerfer
+output_result = args.outputResult
 
 (bim, fam, bed) = read_plink(input_plink)
 pdTmp = pd.DataFrame(bed.compute())
@@ -142,7 +144,7 @@ def SAME_CV(cutoff, hierarchy, G, rare_geno, common_geno, annotation):
     cor_pre_cv = sp.stats.pearsonr(G_test_true,G_test_pred)[0]
     SSR = sum((G_test_true-G_test_pred)**2)
     SST = sum((G_test_true-sp.mean(G_test_true))**2)
-    R2_pre = 1-SSR/SST
+    R2_pre_cv-SSR/SST
     ###calculate the overall perfermance
     result_beta, result_b, result_gamma, result_ite, result_residual, result_Sigma_e, result_Sigma_r, result_Sigma_c, result_Sigma_b, result_Gamma= SAME(G, rare_geno, common_geno, annotation, gamma, b, alpha_e, tau_e, alpha_r, tau_r, alpha_c, tau_c, alpha_b, tau_b, Ite, rate)
     out_beta = result_beta.mean(axis=0)
@@ -153,7 +155,7 @@ def SAME_CV(cutoff, hierarchy, G, rare_geno, common_geno, annotation):
     SSR = sum((G-G_pre_all)**2)
     SST = sum((G-sp.mean(G))**2)
     R2_pre_all = 1-SSR/SST
-    return cor_pre_cv,R2_pre,cor_pre_all,R2_pre_all,sp.mean(result_beta,axis=0), result_gamma, sp.mean(result_b,axis=0), result_Sigma_b,result_Sigma_c,result_Sigma_e,result_Sigma_r
+    return cor_pre_cv,R2_pre_cv,cor_pre_all,R2_pre_all,sp.mean(result_beta,axis=0), result_gamma, sp.mean(result_b,axis=0), result_Sigma_b,result_Sigma_c,result_Sigma_e,result_Sigma_r
 
 
 inds = [*range(1,G.shape[0])]
@@ -172,13 +174,24 @@ Perfermance = pd.DataFrame(columns = Per_names)
 
 for j in range(len(Cutoff)):
     starttime1 = datetime.datetime.now()
-    cor_pre_cv,R2_pre,cor_pre_all,R2_pre_all,result_beta, result_gamma, result_b,result_Sigma_b,result_Sigma_c,result_Sigma_e,result_Sigma_r = SAME_CV(Cutoff[j], hierarchy, G, rare_geno, common_geno, annotation)
+    cor_pre_cv,R2_pre_cv,cor_pre_all,R2_pre_all,result_beta, result_gamma, result_b,result_Sigma_b,result_Sigma_c,result_Sigma_e,result_Sigma_r = SAME_CV(Cutoff[j], hierarchy, G, rare_geno, common_geno, annotation)
     endtime1 = datetime.datetime.now()
     print (endtime1 - starttime1)
-    Perfermance.loc[j] = sp.array([cor_pre_cv,R2_pre,cor_pre_all,R2_pre_all,Cutoff[j],sum(result_gamma)])
+    Perfermance.loc[j] = sp.array([cor_pre_cv,R2_pre_cv,cor_pre_all,R2_pre_all,Cutoff[j],sum(result_gamma)])
 
 Perfermance.to_csv(output_perfer, sep = '\t', index = False)
-
+cv_R2 = Perfermance['cv_R2'].values
+flag = sp.zeros(len(Cutoff))
+Result = pd.DataFrame(columns = Per_names)
+for i  in range(1,len(Cutoff)-1):
+    if (cv_R2[i]-cv_R2[i-1]>0)&(cv_R2[i]-cv_R2[i+1]>0):
+        flag[i] = 1
+if sum(flag)==0:
+    Result.loc[0] = Perfermance.iloc[sp.argmax(cv_R2)].values
+else:
+    tmp = cv_R2*flag
+    Result.loc[0] = Perfermance.iloc[sp.argmax(tmp)].values
+Result.to_csv(output_result, sep = '\t', index = False)
 #geno = sp.hstack((rare_geno, common_geno))
 #out_beta = result_beta.mean(axis=0)
 #out_b = result_b.mean(axis=0)
